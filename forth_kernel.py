@@ -1,7 +1,9 @@
 from ipykernel.kernelbase import Kernel
 
+from typing import Any, Dict, Literal
 from subprocess import check_output, PIPE, Popen
 from threading import Thread
+from functools import cached_property
 import re
 import os
 import sys
@@ -22,15 +24,12 @@ class ForthKernel(Kernel):
     first_command = True
 
     @property
-    def language_version(self):
+    def language_version(self) -> str:
         return self.banner.split(' ')[-1]
 
-    _banner = None
-    @property
-    def banner(self):
-        if self._banner is None:
-            self._banner = check_output(['gforth', '--version']).decode('utf-8')
-        return self._banner
+    @cached_property
+    def banner(self) -> str:
+        return check_output(['gforth', '--version']).decode('utf-8')
 
     language_info = {
         'name': 'forth_kernel',
@@ -48,27 +47,33 @@ class ForthKernel(Kernel):
                 queue.put(line)
             out.close()
         
-        self._gforth = Popen('gforth', stdin=PIPE, stdout=PIPE, bufsize=2, close_fds=ON_POSIX)
-        self._gforth_queue = Queue()
+        self._gforth = Popen('gforth', stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=2, close_fds=ON_POSIX)
+        self._gforth_stdout_queue = Queue()
+        self._gforth_stderr_queue = Queue()
 
-        t = Thread(target=enqueue_output, args=(self._gforth.stdout, self._gforth_queue))
-        t.daemon = True
-        t.start()
+        t_stdout = Thread(target=enqueue_output, args=(self._gforth.stdout, self._gforth_stdout_queue))
+        t_stdout.daemon = True
+        t_stdout.start()
+
+        t_stderr = Thread(target=enqueue_output, args=(self._gforth.stderr, self._gforth_stderr_queue))
+        t_stderr.daemon = True
+        t_stderr.start()    
 
 
-    def answer(self, output):
-        stream_content = {'name': 'stdout', 'text': output}
+    def answer(self, output: str, stream_name: str):
+        """@param stream_name: 'stdout' | 'stderr'"""
+        stream_content = {'name': stream_name, 'text': output}
         self.send_response(self.iopub_socket, 'stream', stream_content)
 
-    def get_queue(self, queue):
+    def get_queue(self, queue: Queue) -> str:
         output = ''
-        line = '.'
+        line = b'.'
         timeout = 3.
         while len(line) or timeout > 0.:
             try:
                 line = queue.get_nowait()
             except Empty:
-                line = ''
+                line = b''
                 if timeout > 0.:
                     time.sleep(0.01)
                     timeout -= 0.01
@@ -78,29 +83,27 @@ class ForthKernel(Kernel):
                 except UnicodeDecodeError:
                     output += line.decode('latin-1')
                 timeout = 0.
-        return output + '\n'
+        return output
 
 
-    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
-
-        if self._gforth_queue.qsize():
-            output = self.get_queue(self._gforth_queue)
-        code = code.encode('utf-8') + '\n'.encode('utf-8')
-        self._gforth.stdin.write(code)
-        output = self.get_queue(self._gforth_queue)
+    def do_execute(self, code: str, silent: bool, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
+        if self._gforth_stdout_queue.qsize():
+            output = self.get_queue(self._gforth_stdout_queue)
+        if self._gforth_stderr_queue.qsize():
+            error = self.get_queue(self._gforth_stderr_queue)
+        
+        self._gforth.stdin.write((code + '\n').encode('utf-8'))
+        output = self.get_queue(self._gforth_stdout_queue)
+        error = self.get_queue(self._gforth_stderr_queue)
 
         # Return results.
         if not silent:
-            output = 'None' if not output else output
-            self.answer(output)
+            self.answer(output + '\n', 'stdout')
+            if error:
+                self.answer(error + '\n', 'stderr')       
 
-        # Barf or return ok.
-        if False:
-            return {'status': 'error', 'execution_count': self.execution_count,
-                    'ename': '', 'evalue': str(exitcode), 'traceback': []}
-        else:
-            return {'status': 'ok', 'execution_count': self.execution_count,
-                    'payload': [], 'user_expressions': {}}
+        return {'status': 'ok', 'execution_count': self.execution_count,
+                'payload': [], 'user_expressions': {}}
     
 if __name__ == '__main__':
     from ipykernel.kernelapp import IPKernelApp

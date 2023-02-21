@@ -1,7 +1,9 @@
 # Jupyter Notebook - for testing purposes
 *.ipynb
+.ipynb_checkpoints/
 
 # Byte-compiled / optimized / DLL files
+.mypy_cache/
 __pycache__/
 *.py[cod]
 
@@ -10,6 +12,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+.eggs/
 env/
 bin/
 build/

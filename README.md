@@ -4,11 +4,10 @@ Forth kernel for the Jupyter / IPython notebook.  Requires IPython 3.x (master a
 
 ## Installation
 1. Install [Gforth](https://www.gnu.org/software/gforth/).  Make sure it is accessible via the commandline/terminal (`gforth --version`).
-2. Clone this repository and run `pip install .` inside this repository's folder (may require `sudo`, depending on Python location).    
-   One sure way to avoid having to use `sudo` is to activate a virtual environment in your home directory (or wherever you have write access to).
+2. Run `pip install forth_kernel`
 
 ### Development Installation
-Do an [editable `pip` install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs) in this repository's folder:
+Clone this repository and do an [editable `pip` install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs) in this repository's folder:
 ```bash
 pip install -e .
 jupyter kernelspec install ./kernelspec --user   
