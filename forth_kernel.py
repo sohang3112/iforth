@@ -46,7 +46,7 @@ class ForthKernel(Kernel):
             for line in iter(out.readline, b''):
                 queue.put(line)
             out.close()
-        
+
         self._gforth = Popen('gforth', stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=2, close_fds=ON_POSIX)
         self._gforth_stdout_queue = Queue()
         self._gforth_stderr_queue = Queue()
@@ -93,6 +93,7 @@ class ForthKernel(Kernel):
             error = self.get_queue(self._gforth_stderr_queue)
         
         self._gforth.stdin.write((code + '\n').encode('utf-8'))
+
         output = self.get_queue(self._gforth_stdout_queue)
         error = self.get_queue(self._gforth_stderr_queue)
 
@@ -100,7 +101,12 @@ class ForthKernel(Kernel):
         if not silent:
             self.answer(output + '\n', 'stdout')
             if error:
-                self.answer(error + '\n', 'stderr')       
+                self.answer(error + '\n', 'stderr')  
+
+        exit_code = self._gforth.poll()
+        if exit_code is not None:
+            self.answer('Killing kernel because GForth process has died\n', 'stderr')
+            sys.exit(exit_code)     
 
         return {'status': 'ok', 'execution_count': self.execution_count,
                 'payload': [], 'user_expressions': {}}
