@@ -1,6 +1,6 @@
 from ipykernel.kernelbase import Kernel
 
-from typing import Any, Dict
+from typing import Any, Dict, Literal
 from subprocess import check_output, PIPE, Popen
 from threading import Thread
 from functools import cached_property
@@ -60,12 +60,12 @@ class ForthKernel(Kernel):
         t_stderr.start()    
 
 
-    def answer(self, output, stream_name):
+    def answer(self, output: str, stream_name: str):
         """@param stream_name: 'stdout' | 'stderr'"""
         stream_content = {'name': stream_name, 'text': output}
         self.send_response(self.iopub_socket, 'stream', stream_content)
 
-    def get_queue(self, queue):
+    def get_queue(self, queue: Queue) -> str:
         output = ''
         line = '.'
         timeout = 3.
@@ -86,7 +86,7 @@ class ForthKernel(Kernel):
         return output
 
 
-    def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
+    def do_execute(self, code: str, silent: bool, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
         if self._gforth_stdout_queue.qsize():
             output = self.get_queue(self._gforth_stdout_queue)
         if self._gforth_stderr_queue.qsize():
