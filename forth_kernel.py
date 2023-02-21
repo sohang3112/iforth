@@ -67,13 +67,13 @@ class ForthKernel(Kernel):
 
     def get_queue(self, queue: Queue) -> str:
         output = ''
-        line = '.'
+        line = b'.'
         timeout = 3.
         while len(line) or timeout > 0.:
             try:
                 line = queue.get_nowait()
             except Empty:
-                line = ''
+                line = b''
                 if timeout > 0.:
                     time.sleep(0.01)
                     timeout -= 0.01
@@ -91,8 +91,8 @@ class ForthKernel(Kernel):
             output = self.get_queue(self._gforth_stdout_queue)
         if self._gforth_stderr_queue.qsize():
             error = self.get_queue(self._gforth_stderr_queue)
-        code = (code + '\n').encode('utf-8')
-        self._gforth.stdin.write(code)
+        
+        self._gforth.stdin.write((code + '\n').encode('utf-8'))
         output = self.get_queue(self._gforth_stdout_queue)
         error = self.get_queue(self._gforth_stderr_queue)
 
