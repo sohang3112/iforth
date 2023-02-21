@@ -60,8 +60,9 @@ class ForthKernel(Kernel):
         t_stderr.start()    
 
 
-    def answer(self, output):
-        stream_content = {'name': 'stdout', 'text': output}
+    def answer(self, output, stream_name):
+        """@param stream_name: 'stdout' | 'stderr'"""
+        stream_content = {'name': stream_name, 'text': output}
         self.send_response(self.iopub_socket, 'stream', stream_content)
 
     def get_queue(self, queue):
@@ -82,7 +83,7 @@ class ForthKernel(Kernel):
                 except UnicodeDecodeError:
                     output += line.decode('latin-1')
                 timeout = 0.
-        return output + '\n'
+        return output
 
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
@@ -90,15 +91,16 @@ class ForthKernel(Kernel):
             output = self.get_queue(self._gforth_stdout_queue)
         if self._gforth_stderr_queue.qsize():
             error = self.get_queue(self._gforth_stderr_queue)
-        code = code.encode('utf-8') + '\n'.encode('utf-8')
+        code = (code + '\n').encode('utf-8')
         self._gforth.stdin.write(code)
         output = self.get_queue(self._gforth_stdout_queue)
         error = self.get_queue(self._gforth_stderr_queue)
 
         # Return results.
         if not silent:
-            self.answer(output or 'None')
-            self.answer(error or 'None')        # TODO: error should be highlighted in some way (maybe red background color)
+            self.answer(output + '\n', 'stdout')
+            if error:
+                self.answer(error + '\n', 'stderr')       
 
         return {'status': 'ok', 'execution_count': self.execution_count,
                 'payload': [], 'user_expressions': {}}
