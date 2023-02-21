@@ -33,7 +33,7 @@ class ForthKernel(Kernel):
 
     language_info = {
         'name': 'forth_kernel',
-        'version': '0.2',
+        'version': '0.3',
         'mimetype': 'text',
         'file_extension': '.4th'
 	}
