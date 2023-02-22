@@ -4,10 +4,12 @@ from typing import Any, Dict, Literal
 from subprocess import check_output, PIPE, Popen
 from threading import Thread
 from functools import cached_property
+from difflib import SequenceMatcher
 import re
 import os
 import sys
 import time
+import html
 
 try:
     from Queue import Queue, Empty
@@ -16,6 +18,8 @@ except ImportError:
 
 __version__ = '0.2'
 __path__ = os.environ.get('GFORTHPATH')
+
+
 
 class ForthKernel(Kernel):
     implementation = 'forth_kernel'
@@ -59,12 +63,6 @@ class ForthKernel(Kernel):
         t_stderr.daemon = True
         t_stderr.start()    
 
-
-    def answer(self, output: str, stream_name: str):
-        """@param stream_name: 'stdout' | 'stderr'"""
-        stream_content = {'name': stream_name, 'text': output}
-        self.send_response(self.iopub_socket, 'stream', stream_content)
-
     def get_queue(self, queue: Queue) -> str:
         output = ''
         line = b'.'
@@ -99,9 +97,24 @@ class ForthKernel(Kernel):
 
         # Return results.
         if not silent:
-            self.answer(output + '\n', 'stdout')
+            code, output = html.escape(code), html.escape(output)
+            s = SequenceMatcher(lambda x: x == '', code, output)
+            html_output = '<pre>' + ''.join(
+                '<b>' + output[j1:j2] + '</b>' if tag in ('insert', 'replace') else output[j1:j2]
+                for tag, i1, i2, j1, j2 in s.get_opcodes()
+            ) + '</pre>'
+            self.send_response(self.iopub_socket, 'display_data', {
+                'metadata': {},
+                'data': {
+                    'text/html': html_output
+                }
+            })
+
             if error:
-                self.answer(error + '\n', 'stderr')  
+                self.send_response(self.iopub_socket, 'stream', {
+                    'name': 'stderr', 
+                    'text': error + '\n'
+                })  
 
         exit_code = self._gforth.poll()
         if exit_code is not None:
