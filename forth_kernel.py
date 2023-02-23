@@ -36,7 +36,7 @@ class ForthKernel(Kernel):
         return check_output(['gforth', '--version'], encoding='utf-8')      # TODO: test this
 
     language_info = {
-        'name': 'forth_kernel',
+        'name': 'forth',
         'version': '0.3',
         'mimetype': 'text',
         'file_extension': '.4th'
