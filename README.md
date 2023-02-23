@@ -1,6 +1,8 @@
 # IForth
 Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/iforth](https://github.com/jdfreder/iforth).
 
+![Example Notebook Screenshot](notebook_screenshot.png)
+
 ## Installation
 1. Install [Gforth](https://www.gnu.org/software/gforth/).  Make sure it is accessible via the commandline/terminal (`gforth --version`).
 2. Run `pip install forth_kernel`
