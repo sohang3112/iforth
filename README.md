@@ -1,6 +1,5 @@
 # IForth
-
-Forth kernel for the Jupyter / IPython notebook.  Requires IPython 3.x (master at the time of writing).
+Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/iforth](https://github.com/jdfreder/iforth).
 
 ## Installation
 1. Install [Gforth](https://www.gnu.org/software/gforth/).  Make sure it is accessible via the commandline/terminal (`gforth --version`).
@@ -16,5 +15,5 @@ jupyter kernelspec install ./kernelspec --user
 **Note:** `jupyter kernelspec install` is required here, because unlike in normal install, the kernel does NOT automatically show in `jupyter kernelspec list`.
 
 ## Usage
-- Run `jupyter notebook` (or `ipython notebook`, whichever you prefer).
+- Run `jupyter notebook` (or `jupyter lab`, whichever you prefer).
 - In a new or existing notebook, use the kernel selector (located at the top right of the notebook) to select `IForth`.
