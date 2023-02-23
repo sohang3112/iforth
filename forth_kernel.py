@@ -33,7 +33,7 @@ class ForthKernel(Kernel):
 
     @cached_property
     def banner(self) -> str:
-        return check_output(['gforth', '--version']).decode('utf-8')
+        return check_output(['gforth', '--version'], encoding='utf-8')      # TODO: test this
 
     language_info = {
         'name': 'forth_kernel',
@@ -83,19 +83,40 @@ class ForthKernel(Kernel):
                 timeout = 0.
         return output
 
+    def answer_text(self, text: str, stream: Literal['stdout', 'stderr']):
+        self.send_response(self.iopub_socket, 'stream', {
+            'name': stream, 
+            'text': text + '\n'
+        }) 
+
+    def answer_html(self, html: str):
+        self.send_response(self.iopub_socket, 'display_data', {
+            'metadata': {},
+            'data': {
+                'text/html': html
+            }
+        })
+
+    def success_response(self):
+        return {'status': 'ok', 'execution_count': self.execution_count,
+                'payload': [], 'user_expressions': {}}
 
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
+        if code.startswith('!'):                # Shell Command
+            self.answer_text(check_output(code[1:], encoding='utf-8'), 'stdout')
+            return self.success_response()
+        
         if self._gforth_stdout_queue.qsize():
             output = self.get_queue(self._gforth_stdout_queue)
         if self._gforth_stderr_queue.qsize():
             error = self.get_queue(self._gforth_stderr_queue)
-        
+
         self._gforth.stdin.write((code + '\n').encode('utf-8'))
 
         output = self.get_queue(self._gforth_stdout_queue)
         error = self.get_queue(self._gforth_stderr_queue)
 
-        # Return results.
+        # Return Jupyter cell output.
         if not silent:
             code, output = html.escape(code), html.escape(output)
             s = SequenceMatcher(lambda x: x == '', code, output)
@@ -103,27 +124,18 @@ class ForthKernel(Kernel):
                 '<b>' + output[j1:j2] + '</b>' if tag in ('insert', 'replace') else output[j1:j2]
                 for tag, i1, i2, j1, j2 in s.get_opcodes()
             ) + '</pre>'
-            self.send_response(self.iopub_socket, 'display_data', {
-                'metadata': {},
-                'data': {
-                    'text/html': html_output
-                }
-            })
+            self.answer_html(html_output)
 
             if error:
-                self.send_response(self.iopub_socket, 'stream', {
-                    'name': 'stderr', 
-                    'text': error + '\n'
-                })  
+                self.answer_text(error, 'stderr')  
 
         exit_code = self._gforth.poll()
         if exit_code is not None:
             self.answer('Killing kernel because GForth process has died\n', 'stderr')
             sys.exit(exit_code)     
 
-        return {'status': 'ok', 'execution_count': self.execution_count,
-                'payload': [], 'user_expressions': {}}
-    
+        return self.success_response()
+
 if __name__ == '__main__':
     from ipykernel.kernelapp import IPKernelApp
     import shutil 
