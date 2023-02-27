@@ -29,11 +29,7 @@ class ForthKernel(Kernel):
 
     @property
     def language_version(self) -> str:
-        return self.banner.split(' ')[-1]
-
-    @cached_property
-    def banner(self) -> str:
-        return check_output(['gforth', '--version'], encoding='utf-8')      # TODO: test this
+        return self.banner.partition(',')[0]
 
     language_info = {
         'name': 'forth',
@@ -62,6 +58,8 @@ class ForthKernel(Kernel):
         t_stderr = Thread(target=enqueue_output, args=(self._gforth.stderr, self._gforth_stderr_queue))
         t_stderr.daemon = True
         t_stderr.start()    
+
+        self.banner = self.get_queue(self._gforth_stdout_queue)
 
     def get_queue(self, queue: Queue) -> str:
         output = ''
@@ -106,11 +104,6 @@ class ForthKernel(Kernel):
             self.answer_text(check_output(code[1:], encoding='utf-8'), 'stdout')
             return self.success_response()
         
-        if self._gforth_stdout_queue.qsize():
-            output = self.get_queue(self._gforth_stdout_queue)
-        if self._gforth_stderr_queue.qsize():
-            error = self.get_queue(self._gforth_stderr_queue)
-
         self._gforth.stdin.write((code + '\n').encode('utf-8'))
 
         output = self.get_queue(self._gforth_stdout_queue)
