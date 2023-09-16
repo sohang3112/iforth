@@ -20,7 +20,6 @@ __version__ = '0.2'
 __path__ = os.environ.get('GFORTHPATH')
 
 
-
 class ForthKernel(Kernel):
     implementation = 'forth_kernel'
     implementation_version = __version__
@@ -64,7 +63,7 @@ class ForthKernel(Kernel):
     def get_queue(self, queue: Queue) -> str:
         output = ''
         line = b'.'
-        timeout = 3.
+        timeout = 5.
         while len(line) or timeout > 0.:
             try:
                 line = queue.get_nowait()
@@ -99,11 +98,15 @@ class ForthKernel(Kernel):
         return {'status': 'ok', 'execution_count': self.execution_count,
                 'payload': [], 'user_expressions': {}}
 
+    # TODO: Arguments (store_history, user_expressions, allow_stdin) are unused <- use them!
+    # BUG: (maybe!) a long-running continous shell output may not show in Jupyter cell output
+    #   Eg. an infinite loop printing same line continously
+    #   FIX: show code output line by line instead of all at once
     def do_execute(self, code: str, silent: bool, store_history=True, user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
         if code.startswith('!'):                # Shell Command
             self.answer_text(check_output(code[1:], encoding='utf-8'), 'stdout')
             return self.success_response()
-        
+
         self._gforth.stdin.write((code + '\n').encode('utf-8'))
 
         output = self.get_queue(self._gforth_stdout_queue)
@@ -113,6 +116,7 @@ class ForthKernel(Kernel):
         if not silent:
             code, output = html.escape(code), html.escape(output)
             s = SequenceMatcher(lambda x: x == '', code, output)
+            # TODO: refactor
             html_output = '<pre>' + ''.join(
                 '<b>' + output[j1:j2] + '</b>' if tag in ('insert', 'replace') else output[j1:j2]
                 for tag, i1, i2, j1, j2 in s.get_opcodes()
@@ -128,10 +132,3 @@ class ForthKernel(Kernel):
             sys.exit(exit_code)     
 
         return self.success_response()
-
-if __name__ == '__main__':
-    from ipykernel.kernelapp import IPKernelApp
-    import shutil 
-
-    assert shutil.which('gforth') is not None, 'Program gforth not found. Please install it and ensure it is on your Environment PATH.'
-    IPKernelApp.launch_instance(kernel_class=ForthKernel)
