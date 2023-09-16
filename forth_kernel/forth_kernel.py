@@ -1,10 +1,8 @@
 import html
 import os
-import re
 import sys
 import time
 from difflib import SequenceMatcher
-from functools import cached_property
 from subprocess import PIPE, Popen, check_output
 from threading import Thread
 from typing import Any, Dict, Literal
@@ -20,7 +18,10 @@ __version__ = '0.2'
 __path__ = os.environ.get('GFORTHPATH')
 
 
+# TODO: override abstract methods do_apply(), do_clear(), do_debug_request() of Kernel class
 class ForthKernel(Kernel):
+    """Jupyter kernel for Forth language"""
+
     implementation = 'forth_kernel'
     implementation_version = __version__
     language = 'forth'
@@ -28,6 +29,7 @@ class ForthKernel(Kernel):
 
     @property
     def language_version(self) -> str:
+        """Version no. of GForth."""
         return self.banner.partition(',')[0]
 
     language_info = {
@@ -61,6 +63,7 @@ class ForthKernel(Kernel):
         self.banner = self.get_queue(self._gforth_stdout_queue)
 
     def get_queue(self, queue: Queue) -> str:
+        """Get all lines from queue and return them as a string."""
         output = ''
         line = b'.'
         timeout = 5.
@@ -81,20 +84,23 @@ class ForthKernel(Kernel):
         return output
 
     def answer_text(self, text: str, stream: Literal['stdout', 'stderr']):
+        """Send text response to Jupyter cell."""
         self.send_response(self.iopub_socket, 'stream', {
             'name': stream, 
             'text': text + '\n'
         }) 
 
-    def answer_html(self, html: str):
+    def answer_html(self, html_text: str):
+        """Send HTML response to Jupyter cell."""
         self.send_response(self.iopub_socket, 'display_data', {
             'metadata': {},
             'data': {
-                'text/html': html
+                'text/html': html_text
             }
         })
 
-    def success_response(self):
+    def success_response(self) -> Dict[str, Any]:
+        """Tell Jupyter that cell ran successfully."""
         return {'status': 'ok', 'execution_count': self.execution_count,
                 'payload': [], 'user_expressions': {}}
 
@@ -128,7 +134,7 @@ class ForthKernel(Kernel):
 
         exit_code = self._gforth.poll()
         if exit_code is not None:
-            self.answer('Killing kernel because GForth process has died\n', 'stderr')
+            self.answer_text('Killing kernel because GForth process has died', 'stderr')
             sys.exit(exit_code)     
 
         return self.success_response()

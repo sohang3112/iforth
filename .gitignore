@@ -3,6 +3,8 @@
 
 # Jupyter Notebook - for testing purposes
 *.ipynb
+.local/
+.jupyter/
 .ipynb_checkpoints/
 
 # Byte-compiled / optimized / DLL files
