@@ -1,20 +1,20 @@
-from ipykernel.kernelbase import Kernel
-
-from typing import Any, Dict, Literal
-from subprocess import check_output, PIPE, Popen
-from threading import Thread
-from functools import cached_property
-from difflib import SequenceMatcher
-import re
+import html
 import os
+import re
 import sys
 import time
-import html
+from difflib import SequenceMatcher
+from functools import cached_property
+from subprocess import PIPE, Popen, check_output
+from threading import Thread
+from typing import Any, Dict, Literal
+
+from ipykernel.kernelbase import Kernel
 
 try:
-    from Queue import Queue, Empty
+    from Queue import Empty, Queue
 except ImportError:
-    from queue import Queue, Empty  # python 3.x
+    from queue import Empty, Queue  # python 3.x
 
 __version__ = '0.2'
 __path__ = os.environ.get('GFORTHPATH')
