@@ -1,5 +1,6 @@
+import shutil
+
 from ipykernel.kernelapp import IPKernelApp
-import shutil 
 
 from .forth_kernel import ForthKernel
 
