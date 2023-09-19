@@ -1,2 +1,3 @@
 include README.md
 include kernelspec/kernel.json
+include forth_kernel/py.typed
