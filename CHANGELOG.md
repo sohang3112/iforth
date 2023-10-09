@@ -4,6 +4,7 @@
 
 ### Added
 - Add Forth syntax highlighting by correcting language name of Jupyter kernel.
+- In Jupyter cell output, highlighted actual code output in bold (as opposed to where `gforth` is just echoing the input code).
 - Support running shell commands by prefixing with `!`.
 - Add `py.typed` marker file so that mypy will use the type annotations.
 - **WIP:** Add `Dockerfile` to allow building and running as `docker` containers. This is especially useful on Windows.
