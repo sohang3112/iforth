@@ -1,3 +1,7 @@
+# Temporary backup files of Notepad++, Microsoft & WPS Office
+*.bak
+~*
+
 # Virtual Environments
 *venv/
 
