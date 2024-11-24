@@ -16,7 +16,7 @@ Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/
 Clone this repository and do an [editable `pip` install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs) in this repository's folder:
 ```bash
 pip install -e .
-jupyter kernelspec install ./kernelspec --user   
+jupyter kernelspec install ./forth --user   
 ```
 
 ### Installing with Docker
@@ -28,6 +28,13 @@ jupyter kernelspec install ./kernelspec --user
 ## Usage
 - Run `jupyter notebook` (or `jupyter lab`, whichever you prefer).
 - In a new or existing notebook, use the kernel selector (located at the top right of the notebook) to select `IForth`.
+
+## Files Description
+- *forth_kernel/ - Python source code
+    - *forth_kernel.py* - main code
+    - *__init__.py*, *__main__.py* - for marking as python package
+    - *py.typed* - for enabling type hint support when importing as Python library `forth_kernel`.
+- *forth/kernel.json* - specification for IForth jupyter kernel (to be installed with `jupyter kernelspec install`).
 
 ## TODO
 - Unit Tests
