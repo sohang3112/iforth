@@ -5,8 +5,7 @@
 # Virtual Environments
 *venv/
 
-# Jupyter Notebook - for testing purposes
-*.ipynb
+# Jupyter/IPython checkpoints
 .local/
 .jupyter/
 .ipynb_checkpoints/
