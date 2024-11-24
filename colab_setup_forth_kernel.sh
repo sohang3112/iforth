@@ -10,6 +10,7 @@ if [ ! -d iforth ] ; then
 fi
 
 cd iforth
+pip install .
 #pip install forth_kernel      # WORKING, although it seems not to have installed kernelspec
 jupyter kernelspec install --user ./forth/
 
