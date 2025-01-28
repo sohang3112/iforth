@@ -10,8 +10,25 @@ if [ ! -d iforth ] ; then
 fi
 
 cd iforth
+
+# ERROR (sometimes):
+# Building wheels for collected packages: forth_kernel
+#   error: subprocess-exited-with-error
+  
+#   × python setup.py bdist_wheel did not run successfully.
+#   │ exit code: 1
+#   ╰─> See above for output.
+  
+#   note: This error originates from a subprocess, and is likely not a problem with pip.
+#   Building wheel for forth_kernel (setup.py) ... error
+#   ERROR: Failed building wheel for forth_kernel
+#   Running setup.py clean for forth_kernel
+# Failed to build forth_kernel
+# ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (forth_kernel)
+
 pip install .
 #pip install forth_kernel      # WORKING, although it seems not to have installed kernelspec
+
 jupyter kernelspec install --user ./forth/
 
 # IPC Proxy shouldn't be required for our jupyter kernel impl in pure Python; below was from a Rust kernel
