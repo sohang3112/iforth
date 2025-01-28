@@ -1,6 +1,0 @@
-{"argv":["python","-m","forth_kernel", "-f", "{connection_file}"],
-"display_name":"IForth",
-"language":"Forth",
-"codemirror_mode": "text",
-"name": "Forth"
-}

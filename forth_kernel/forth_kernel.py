@@ -1,4 +1,6 @@
 import html
+import importlib_metadata
+import logging
 import os
 import sys
 import time
@@ -11,9 +13,12 @@ from ipykernel.kernelbase import Kernel
 
 from queue import Empty, Queue
 
-__version__ = "0.2"
 __path__ = os.environ.get("GFORTHPATH")
+__version__ = importlib_metadata.version("forth_kernel")
 
+logger = logging.getLogger("forth_kernel")
+logger.info("GFORTHPATH: %s", __path__)
+logger.info("forth_kernel version: %s}", __version__)
 
 # TODO: override abstract methods do_apply(), do_clear(), do_debug_request() of Kernel class
 class ForthKernel(Kernel):
@@ -31,7 +36,7 @@ class ForthKernel(Kernel):
 
     language_info = {
         "name": "forth",
-        "version": "0.3",
+        "version": __version__,
         "mimetype": "text",
         "file_extension": ".4th",
     }
@@ -121,12 +126,15 @@ class ForthKernel(Kernel):
     #   FIX: show code output line by line instead of all at once
     def do_execute(
         self,
-        code: str,
+        code,
         silent: bool,
-        store_history=True,
-        user_expressions=None,
-        allow_stdin=False,
-    ) -> Dict[str, Any]:
+        store_history: bool = True,
+        user_expressions = None,
+        allow_stdin = None,
+        *,
+        cell_meta = None,
+        cell_id = None,
+    ):
         # TODO: add magic function '%html' (& '%%html'), in which Forth output is directly shown as HTML
         # NOTE: this can only be done AFTER we remove input code from stdout output
 
