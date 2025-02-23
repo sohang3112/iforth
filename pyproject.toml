@@ -1,7 +1,7 @@
 [project]
 readme = { file = "README.md", content-type = "text/markdown" }
 name = "forth_kernel"
-version = "0.4.0"
+version = "0.4.1"
 description = "A Jupyter kernel for the Forth programming language. Allows running Forth in interactive Jupyter Notebook."
 authors = [{ name = "Sohang Chopra", email = "sohangchopra@gmail.com" }]
 urls = { "Source" = "https://github.com/sohang3112/iforth" }
@@ -22,14 +22,12 @@ dependencies = [
 [tool.mypy]
 exclude = ".git,.venv,build"
 
-# [tool.setuptools.cmdclass]
-# install = "CustomInstallCommand"
-
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = [
-    "mypy>=1.14.1",
+dev = ["mypy>=1.14.1", "pre-commit>=3.5.0"]
+test = [
+    "jupyter-kernel-test>=0.7.0",
 ]

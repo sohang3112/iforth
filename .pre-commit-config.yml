@@ -1,0 +1,15 @@
+# - repo: https://github.com/charliermarsh/ruff
+#   rev: v0.0.220
+#   hooks:
+#     - id: ruff
+#       name: Ruff Linter
+#       language_version: python3
+#       args: ['--select', 'E', 'F', 'W']  # Select error, flake, and warning types.
+
+- repo: https://github.com/python/mypy
+  rev: v1.5.0
+  hooks:
+    - id: mypy
+      name: Mypy Type Checker
+      language_version: python3
+      args: ['--config-file', 'mypy.ini']

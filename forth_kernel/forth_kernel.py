@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+import shutil
 from difflib import SequenceMatcher
 from subprocess import PIPE, Popen, check_output
 from threading import Thread
@@ -20,9 +21,12 @@ logger = logging.getLogger("forth_kernel")
 logger.info("GFORTHPATH: %s", __path__)
 logger.info("forth_kernel version: %s}", __version__)
 
+if shutil.which('gforth') is None:
+    logger.warning('Gforth not found. Please install it and ensure it is on your Environment PATH.')
+
 # TODO: override abstract methods do_apply(), do_clear(), do_debug_request() of Kernel class
 class ForthKernel(Kernel):
-    """Jupyter kernel for Forth language"""
+    """Jupyter kernel for Forth language."""
 
     implementation = "forth_kernel"
     implementation_version = __version__
@@ -31,7 +35,7 @@ class ForthKernel(Kernel):
 
     @property
     def language_version(self) -> str:
-        """Version no. of GForth."""
+        """Version number of GForth."""
         return self.banner.partition(",")[0]
 
     language_info = {
@@ -42,6 +46,10 @@ class ForthKernel(Kernel):
     }
 
     def __init__(self, **kwargs):
+        """Initialize the Forth kernel.
+
+        Create a new GForth process and start reading from its stdout and stderr.
+        """
         Kernel.__init__(self, **kwargs)
         ON_POSIX = "posix" in sys.builtin_module_names
 
