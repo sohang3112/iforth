@@ -1,5 +1,5 @@
 import logging
 
-from .forth_kernel import ForthKernel
+from .iforth import GForth, IForth
 
-logger = logging.getLogger("forth_kernel")
+__all__ = ['IForth', 'GForth']

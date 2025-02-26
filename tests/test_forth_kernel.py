@@ -6,8 +6,8 @@ class MyKernelTests(jupyter_kernel_test.KernelTests):
     kernel_name = "forth"
     language_name = "forth"
 
-    # code_hello_world = '." Hello, world!" cr'
-    code_execute_result = [{"code": '." Hello World" cr', "result": "Hello World\n"}]
+    code_hello_world = '." Hello, world!" cr'
+    # code_execute_result = [{"code": '." Hello World" cr', "result": "Hello World\n"}]
     # AssertionError: execute_result message not found
 
 

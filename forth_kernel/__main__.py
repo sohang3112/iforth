@@ -1,17 +1,23 @@
-import logging
-import shutil
-import sys
-from argparse import ArgumentParser
-from pathlib import Path
+import asyncio
 
+import nest_asyncio
 from ipykernel.kernelapp import IPKernelApp
-from jupyter_client.kernelspec import install_kernel_spec
 
-from .forth_kernel import ForthKernel
+from . import IForth
 
-IPKernelApp.launch_instance(kernel_class=ForthKernel)
-#app = IPKernelApp.instance(kernel_class=ForthKernel)
-#app.initialize()
-#app.start()
+nest_asyncio.apply()
+
+async def main():
+    await IForth.gforth.start()
+    IForth.banner = IForth.gforth.banner
+    IForth.language_info = {
+        "name": "forth",
+        "version": IForth.gforth.version,
+        "mimetype": "text",
+        "file_extension": ".4th",
+    }
+    IPKernelApp.launch_instance(kernel_class=IForth)
+
+asyncio.get_event_loop().run_until_complete(main())
 
 

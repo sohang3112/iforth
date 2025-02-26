@@ -8,8 +8,6 @@ from pathlib import Path
 from ipykernel.kernelapp import IPKernelApp
 from jupyter_client.kernelspec import install_kernel_spec
 
-from .forth_kernel import ForthKernel
-
 logger = logging.getLogger('forth_kernel')
 logger.setLevel(logging.INFO)
 logger.info('Installing Forth kernel...')

@@ -16,10 +16,12 @@ dependencies = [
     "importlib-metadata>=8.5.0",
     "ipykernel>=6.29.5",
     "jupyter-client>=8.6.3",
+    "nest-asyncio>=1.6.0",
     "pexpect>=4.9.0",
 ]
 
 [tool.mypy]
+ignore_missing_imports = true
 exclude = ".git,.venv,build"
 
 [build-system]
@@ -28,6 +30,4 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = ["mypy>=1.14.1", "pre-commit>=3.5.0"]
-test = [
-    "jupyter-kernel-test>=0.7.0",
-]
+test = ["jupyter-kernel-test>=0.7.0"]

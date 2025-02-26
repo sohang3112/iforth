@@ -221,6 +221,7 @@ dependencies = [
     { name = "importlib-metadata" },
     { name = "ipykernel" },
     { name = "jupyter-client" },
+    { name = "nest-asyncio" },
     { name = "pexpect" },
 ]
 
@@ -238,6 +239,7 @@ requires-dist = [
     { name = "importlib-metadata", specifier = ">=8.5.0" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "jupyter-client", specifier = ">=8.6.3" },
+    { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "pexpect", specifier = ">=4.9.0" },
 ]
 
