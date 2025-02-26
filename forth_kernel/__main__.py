@@ -5,6 +5,8 @@ from ipykernel.kernelapp import IPKernelApp
 
 from . import IForth
 
+# Allows asyncio.run() to be called multiple times.
+# Source: https://stackoverflow.com/a/56434301/12947681
 nest_asyncio.apply()
 
 async def main():
@@ -18,6 +20,6 @@ async def main():
     }
     IPKernelApp.launch_instance(kernel_class=IForth)
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
 
 
