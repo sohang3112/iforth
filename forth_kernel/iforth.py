@@ -44,11 +44,12 @@ class GForth:
 
     >>> async def test():
     ...     async with GForth() as gforth:
-    ...         await gforth.exec('1 2 + .')
-    ...     print(gforth.version())
+    ...         ans = await gforth.exec('3 0 1 2 + .', print_func=lambda text, stream: None)       # suppress output
+    ...     print(gforth.version)
+    ...     print(ans.rstrip())
     >>> asyncio.get_event_loop().run_until_complete(test())
-    1 2 + . 3  ok
     Gforth 0.7.3
+    .s <2> 3 0  ok
     """
     executable_path = gforth_path()
     line_timeout = 2     # seconds
@@ -61,26 +62,34 @@ class GForth:
     
     async def start(self) -> None:
         """Start GForth process."""
-        self._process = await asyncio.create_subprocess_exec(
-            self.executable_path,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        atexit.register(self._process.terminate)
-        self.banner = ''.join([line.decode() async for line in read_lines(self._process.stdout, timeout=self.line_timeout)])
-        self.version = self.banner.partition(",")[0]
-        logger.info("GForth version: %s", self.version)
+        if self._process is None:
+            self._process = await asyncio.create_subprocess_exec(
+                self.executable_path,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            atexit.register(self._process.terminate)
+            self.banner = ''.join([line.decode() async for line in read_lines(self._process.stdout, timeout=self.line_timeout)])
+            self.version = self.banner.partition(",")[0]
+            logger.info("GForth version: %s", self.version)
+
+    def terminate(self) -> None:
+        """Terminate GForth process."""
+        if self._process:
+            self._process.terminate()
+            self._process = None
 
     async def __aenter__(self):
-        self.start()
+        await self.start()
         return self
 
     async def __aexit__(self, exc_t, exc_v, exc_tb):
-        self._process.terminate()
+        self.terminate()
 
     async def _exec_code_line(self, cmd: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None]) -> bool:
         """Execute a single line of Forth code.
+
         @param cmd: Forth code to execute.
         @param print_func: Function to print output. It recieves argument for whether stdout or stderr is to be used.
         @return: Whether the execution was successful (i.e. no error occurred).
@@ -97,9 +106,13 @@ class GForth:
 
     async def exec(self, code: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None] = print_terminal) -> str | None:
         """Execute Forth code.
+
         @param code: Forth code to execute.
         @param print_func: Function to print output. It recieves argument for whether stdout or stderr is to be used.
         """
+        if self._process is None:
+            raise ValueError("GForth process not started - first call .start() method.")
+
         logger.info("Executing Forth code: %s", code)
         for cmd_bytes in code.encode().splitlines():
             successful = await self._exec_code_line(cmd_bytes.decode(), print_func)
@@ -147,7 +160,6 @@ class IForth(Kernel):
             },
             "metadata": {}
         })
-
 
     async def do_execute(
         self,
