@@ -12,23 +12,10 @@ class MyKernelTests(jupyter_kernel_test.KernelTests):
     file_extension = ".4th"
 
     code_hello_world = '." hello, world"'
-    code_stderr = '.'
-    # code_execute_stdout = 
-    # code_execute_result = [
-    #     {"code": '1 2 + .', "result": "1 2 + . 3  ok"}
-    # ]  
-    # AssertionError: execute_result message not found
-
-    # code_display_data = [
-    #     {
-    #         "code": "from IPython.display import HTML, display; display(HTML('<b>test</b>'))",
-    #         "mime": "text/html",
-    #     },
-    #     {
-    #         "code": "from IPython.display import Math, display; display(Math('\\frac{1}{2}'))",
-    #         "mime": "text/latex",
-    #     },
-    # ]
+    code_stderr = 'clearstack .'      # stack underflow error
+    code_execute_result = [
+        {'code': '1 2 3 .', 'result': '.s <2> 1 2  ok\n'},
+    ]
     
 
 if __name__ == "__main__":
