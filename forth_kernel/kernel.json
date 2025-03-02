@@ -9,5 +9,6 @@
     "display_name": "IForth",
     "language": "Forth",
     "codemirror_mode": "text",
+    "interrupt_mode": "message",
     "name": "Forth"
 }

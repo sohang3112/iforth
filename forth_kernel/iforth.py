@@ -7,7 +7,7 @@ import shutil
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, override
 
 from ipykernel.kernelbase import Kernel
 from ipykernel.ipkernel import IPythonKernel
@@ -29,15 +29,21 @@ def print_terminal(text: str, stream: Literal['stdout', 'stderr']) -> None:
     """Print text to terminal."""
     getattr(sys, stream).write(text)
 
-async def read_lines(file, timeout: int):
+async def read_chunks(file, chunk_size: int, timeout: int):
     while True:
         try:
-            line = await asyncio.wait_for(file.readline(), timeout=timeout)
-            if not line:
+            chunk = await asyncio.wait_for(file.read(chunk_size), timeout=timeout)
+            if not chunk:
                 break
-            yield line
+            yield chunk
         except asyncio.TimeoutError:
             break
+
+async def skip_output_text(file, text: str) -> None:
+    """Skip specific output text from file handle."""
+    chunk = await file.read(len(text))
+    if chunk.decode() != text:
+        raise ValueError(f"Expected text: {text}, got: {chunk.decode()}")
 
 class GForth:
     """Run Forth code using GForth.
@@ -45,14 +51,13 @@ class GForth:
     >>> async def test():
     ...     async with GForth() as gforth:
     ...         ans = await gforth.exec('3 0 1 2 + .', print_func=lambda text, stream: None)       # suppress output
-    ...     print(gforth.version)
     ...     print(ans.rstrip())
     >>> asyncio.get_event_loop().run_until_complete(test())
-    Gforth 0.7.3
     .s <2> 3 0  ok
     """
     executable_path = gforth_path()
-    line_timeout = 2     # seconds
+    output_timeout = 2     # seconds
+    chunk_size = 64        # max output characters to print in one go
 
     def __init__(self):
         self._process = None
@@ -70,15 +75,21 @@ class GForth:
                 stderr=asyncio.subprocess.PIPE
             )
             atexit.register(self._process.terminate)
-            self.banner = ''.join([line.decode() async for line in read_lines(self._process.stdout, timeout=self.line_timeout)])
+            self.banner = ''.join([chunk.decode() async for chunk in read_chunks(self._process.stdout, self.chunk_size, timeout=self.output_timeout)])
             self.version = self.banner.partition(",")[0]
             logger.info("GForth version: %s", self.version)
 
-    def terminate(self) -> None:
-        """Terminate GForth process."""
-        if self._process:
-            self._process.terminate()
-            self._process = None
+    def terminate(self) -> int | None:
+        """Terminate GForth process.
+        
+        @return: Exit code of the process.
+        """
+        if self._process is None:
+            return None
+        self._process.terminate()
+        exit_code = self._process.poll()
+        self._process = None
+        return exit_code
 
     async def __aenter__(self):
         await self.start()
@@ -96,12 +107,12 @@ class GForth:
         """
         successful = True
         self._process.stdin.write(cmd.encode() + b'\n')
-        await self._process.stdin.drain()
-        async for line in read_lines(self._process.stdout, timeout=self.line_timeout):
-            print_func(line.decode(), 'stdout')
-        async for line in read_lines(self._process.stderr, timeout=self.line_timeout):
+        await skip_output_text(self._process.stdout, cmd)        # GForth echoes the command, skip it
+        async for chunk in read_chunks(self._process.stdout, self.chunk_size, timeout=self.output_timeout):
+            print_func(chunk.decode(), 'stdout')
+        async for chunk in read_chunks(self._process.stderr, self.chunk_size, timeout=self.output_timeout):
             successful = False
-            print_func(line.decode(), 'stderr')
+            print_func(chunk.decode(), 'stderr')
         return successful
 
     async def exec(self, code: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None] = print_terminal) -> str | None:
@@ -116,6 +127,10 @@ class GForth:
         logger.info("Executing Forth code: %s", code)
         for cmd_bytes in code.encode().splitlines():
             successful = await self._exec_code_line(cmd_bytes.decode(), print_func)
+            exit_code = self._process.poll()
+            if exit_code is not None:
+                print_func(f"GForth process exited with code {exit_code}.", 'stderr')
+                sys.exit(exit_code)
             if not successful:
                 return None
         
@@ -134,8 +149,7 @@ class GForth:
     async def interrupt(self) -> str:
         """Sends Ctrl+C to GForth process, and returns its error message."""
         self._process.send_signal(signal.SIGINT)
-        return ''.join([line.decode() async for line in read_lines(self._process.stderr, timeout=self.line_timeout)])
-            
+        return ''.join([chunk.decode() async for chunk in read_chunks(self._process.stderr, self.chunk_size, timeout=self.output_timeout)])
 
 #class IForth(IPythonKernel):  
 class IForth(Kernel):
@@ -161,6 +175,7 @@ class IForth(Kernel):
             "metadata": {}
         })
 
+    @override
     async def do_execute(
         self,
         code: str,
@@ -174,10 +189,9 @@ class IForth(Kernel):
     ) -> dict[str, Any]:
         """Execute Forth code."""
         logger.info("do_execute (silent=%s): %s", silent, code)
-        if not silent:
-            stack_output = await self.gforth.exec(code, self.answer_text)
-            if stack_output:
-                self.answer_expression_value(stack_output)
+        stack_output = await self.gforth.exec(code, self.answer_text)    # of the form: <2> 1 2  ok  (we should parse, <0> means no stack, so shouldn't respond)
+        if stack_output is not None:
+            self.answer_expression_value(stack_output)
         return {
             'status': 'ok', 
             'execution_count': self.execution_count, 
@@ -185,11 +199,13 @@ class IForth(Kernel):
             'user_expressions': {}
         }
 
-    def interrupt_request(self):
-        """Interrupt GForth process."""
-        logger.info("Interrupting GForth process.")
-        error_msg = self.gforth.interrupt()
-        self.answer_text(error_msg, 'stderr')
+    # BUG: doesnt seem to be called (the log message is not printed in `tail -F ~/.jupyter/forth_kernel.log`)
+    @override
+    def do_shutdown(self, restart: bool) -> dict[str, str | bool]:
+        """Shutdown the kernel."""
+        logger.info("do_shutdown (restart=%s)", restart)
+        self.gforth.terminate()
+        return {'status': 'ok', 'restart': restart}
 
 if __name__ == '__main__':
     import doctest

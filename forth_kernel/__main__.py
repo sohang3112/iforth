@@ -10,7 +10,7 @@ from . import IForth
 nest_asyncio.apply()
 
 async def main():
-    await IForth.gforth.start()
+    await IForth.gforth.start()         # TODO: instead use async with for GForth()
     IForth.banner = IForth.gforth.banner
     IForth.language_info = {
         "name": "forth",
