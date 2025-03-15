@@ -19,6 +19,10 @@ $ python -m forth_kernel.self_install --user
 
 **Note:** Currently supported on Linux only because on Windows, `gforth` doesn't work.
 
+## Documentation
+
+See detailed documentation at [this repo's wiki](https://github.com/sohang3112/iforth/wiki). **TODO:** The wiki is empty, update docs there!
+
 ## Usage
 
 - Run `jupyter notebook` (or `jupyter lab`, whichever you prefer).
