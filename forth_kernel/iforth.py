@@ -199,6 +199,8 @@ class IForth(Kernel):
             'user_expressions': {}
         }
 
+    # https://jupyter-client.readthedocs.io/en/latest/messaging.html#kernel-interrupt
+
     # BUG: doesnt seem to be called (the log message is not printed in `tail -F ~/.jupyter/forth_kernel.log`)
     @override
     def do_shutdown(self, restart: bool) -> dict[str, str | bool]:
