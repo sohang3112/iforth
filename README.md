@@ -21,7 +21,7 @@ $ python -m forth_kernel.self_install --user
 
 ## Contribution & Development Install
 
-See [CONTRIBUTION.md](CONTRIBUTION.md) .
+See [CONTRIBUTING.md](CONTRIBUTING.md) .
 
 ## Documentation
 
