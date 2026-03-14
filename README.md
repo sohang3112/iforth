@@ -19,6 +19,10 @@ $ python -m forth_kernel.self_install --user
 
 **Note:** Currently supported on Linux only because on Windows, `gforth` doesn't work.
 
+## Contribution & Development Install
+
+See [CONTRIBUTION.md](CONTRIBUTION.md) .
+
 ## Documentation
 
 See detailed documentation at [this repo's wiki](https://github.com/sohang3112/iforth/wiki). **TODO:** The wiki is empty, update docs there!
