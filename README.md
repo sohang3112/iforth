@@ -1,4 +1,4 @@
-# IForth
+# IForth (Python package)
 
 Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/iforth](https://github.com/jdfreder/iforth).
 
@@ -10,14 +10,27 @@ Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/
 
 ## Installation
 
-Install `python` and `gforth`, ensuring they are available in environment PATH, then do:
+**Pre-Requisite**: Install `jupyter` & `gforth`, ensuring they are available in the environment PATH.
+
+After installing via either of the 2 methods mentioned below (using `uv` or `pip`), verify by running `jupyter kernelspec list` that `forth` kernel is listed.
+
+**Note:** Currently supported on Linux only because on Windows, `gforth` doesn't work. Has not been tested on Mac OS.
+
+### Install using [`uv`](https://docs.astral.sh/uv/getting-started/installation/) python package manager
+
+TODO: this way isn't tested, only `pip` install way has been tested.
+
+```bash
+$ uv tool install forth_kernel
+$ uv tool run forth_kernel.self_install --user     # Register IForth Jupyter kernel
+```
+
+### Install using `pip`
 
 ```bash
 $ pip install forth_kernel
-$ python -m forth_kernel.self_install --user
+$ python -m forth_kernel.self_install --user      # Register IForth Jupyter kernel
 ```
-
-**Note:** Currently supported on Linux only because on Windows, `gforth` doesn't work.
 
 ## Contribution & Development Install
 
