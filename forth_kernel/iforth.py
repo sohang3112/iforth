@@ -87,7 +87,7 @@ class GForth:
         if self._process is None:
             return None
         self._process.terminate()
-        exit_code = self._process.poll()
+        exit_code = self._process.returncode
         self._process = None
         return exit_code
 
@@ -107,6 +107,7 @@ class GForth:
         """
         successful = True
         self._process.stdin.write(cmd.encode() + b'\n')
+        await self._process.stdin.drain()
         await skip_output_text(self._process.stdout, cmd)        # GForth echoes the command, skip it
         async for chunk in read_chunks(self._process.stdout, self.chunk_size, timeout=self.output_timeout):
             print_func(chunk.decode(), 'stdout')
@@ -127,7 +128,7 @@ class GForth:
         logger.info("Executing Forth code: %s", code)
         for cmd_bytes in code.encode().splitlines():
             successful = await self._exec_code_line(cmd_bytes.decode(), print_func)
-            exit_code = self._process.poll()
+            exit_code = self._process.returncode
             if exit_code is not None:
                 print_func(f"GForth process exited with code {exit_code}.", 'stderr')
                 sys.exit(exit_code)
