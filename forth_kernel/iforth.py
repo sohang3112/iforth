@@ -57,6 +57,8 @@ class GForth:
     """
     executable_path = gforth_path()
     output_timeout = 2     # seconds
+    poll_interval = 0.3    # how often to glance at stderr while waiting
+    error_timeout = 0.05   # how long to wait for error text once suspected
     chunk_size = 64        # max output characters to print in one go
 
     def __init__(self):
@@ -98,23 +100,34 @@ class GForth:
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         self.terminate()
 
-    async def _exec_code_line(self, cmd: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None]) -> bool:
-        """Execute a single line of Forth code.
-
-        @param cmd: Forth code to execute.
-        @param print_func: Function to print output. It recieves argument for whether stdout or stderr is to be used.
-        @return: Whether the execution was successful (i.e. no error occurred).
-        """
-        successful = True
+    async def _exec_code_line(self, cmd: str, print_func) -> bool:
+        """Execute a single line of Forth code. Returns False if GForth reported an error."""
         self._process.stdin.write(cmd.encode() + b'\n')
         await self._process.stdin.drain()
-        await skip_output_text(self._process.stdout, cmd)        # GForth echoes the command, skip it
-        async for chunk in read_chunks(self._process.stdout, self.chunk_size, timeout=self.output_timeout):
-            print_func(chunk.decode(), 'stdout')
-        async for chunk in read_chunks(self._process.stderr, self.chunk_size, timeout=self.output_timeout):
-            successful = False
-            print_func(chunk.decode(), 'stderr')
-        return successful
+        await skip_output_text(self._process.stdout, cmd)   # GForth echoes the command
+
+        tail = ''
+        while True:
+            try:
+                chunk = await asyncio.wait_for(
+                    self._process.stdout.read(self.chunk_size),
+                    timeout=self.poll_interval)
+            except asyncio.TimeoutError:
+                # stdout is quiet: either GForth is still working, or it errored out
+                err = ''.join([c.decode(errors='replace') async for c in
+                               read_chunks(self._process.stderr,
+                                           self.chunk_size, self.error_timeout)])
+                if err:
+                    print_func(err, 'stderr')
+                    return False
+                continue          # still working - keep waiting, no deadline
+            if not chunk:
+                return True
+            text = chunk.decode(errors='replace')
+            print_func(text, 'stdout')
+            tail = (tail + text)[-40:]
+            if tail.rstrip().endswith((' ok', ' compiled')):
+                return True
 
     async def exec(self, code: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None] = print_terminal) -> str | None:
         """Execute Forth code.
