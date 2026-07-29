@@ -45,6 +45,17 @@ async def skip_output_text(file, text: str) -> None:
     if chunk.decode() != text:
         raise ValueError(f"Expected text: {text}, got: {chunk.decode()}")
 
+PROMPTS = (' ok', ' compiled')
+HOLDBACK = 16      # >= len(' compiled\n'), so a prompt is never printed early
+
+def strip_prompt(text: str) -> str:
+    """Remove GForth's trailing prompt, and the space separating it, from text."""
+    stripped = text.rstrip()
+    for prompt in PROMPTS:
+        if stripped.endswith(prompt):
+            return stripped[:-len(prompt)].rstrip(' \t')
+    return text
+
 class GForth:
     """Run Forth code using GForth.
 
@@ -105,29 +116,44 @@ class GForth:
         self._process.stdin.write(cmd.encode() + b'\n')
         await self._process.stdin.drain()
         await skip_output_text(self._process.stdout, cmd)   # GForth echoes the command
+        return await self._stream_until_prompt(print_func)
 
-        tail = ''
+    async def _read_stderr(self) -> str:
+        """Collect whatever GForth has written to stderr, if anything."""
+        return ''.join([chunk.decode(errors='replace') async for chunk in
+                        read_chunks(self._process.stderr,
+                                    self.chunk_size, self.error_timeout)])
+
+    async def _stream_until_prompt(self, print_func) -> bool:
+        """Stream stdout to print_func until GForth's prompt, which is withheld.
+
+        Waits indefinitely while GForth is working; returns False if it errored.
+        """
+        pending = ''
         while True:
             try:
                 chunk = await asyncio.wait_for(
                     self._process.stdout.read(self.chunk_size),
                     timeout=self.poll_interval)
             except asyncio.TimeoutError:
-                # stdout is quiet: either GForth is still working, or it errored out
-                err = ''.join([c.decode(errors='replace') async for c in
-                               read_chunks(self._process.stderr,
-                                           self.chunk_size, self.error_timeout)])
+                err = await self._read_stderr()     # quiet stdout: working, or errored?
                 if err:
                     print_func(err, 'stderr')
                     return False
-                continue          # still working - keep waiting, no deadline
+                continue
             if not chunk:
-                return True
-            text = chunk.decode(errors='replace')
-            print_func(text, 'stdout')
-            tail = (tail + text)[-40:]
-            if tail.rstrip().endswith((' ok', ' compiled')):
-                return True
+                break
+            pending += chunk.decode(errors='replace')
+            if pending.rstrip().endswith(PROMPTS):
+                break
+            if len(pending) > HOLDBACK:
+                print_func(pending[:-HOLDBACK], 'stdout')
+                pending = pending[-HOLDBACK:]
+
+        body = strip_prompt(pending)
+        if body:
+            print_func(body, 'stdout')
+        return True
 
     async def exec(self, code: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None] = print_terminal) -> str | None:
         """Execute Forth code.
@@ -158,7 +184,7 @@ class GForth:
                 print_func(text, 'stderr')
 
         successful = await self._exec_code_line('.s', print_stack)
-        return stack_output if successful and stack_output else None
+        return stack_output + ' ok' if successful and stack_output else None
         
     async def interrupt(self) -> str:
         """Sends Ctrl+C to GForth process, and returns its error message."""
@@ -177,7 +203,7 @@ class IForth(Kernel):
         """Send text response to Jupyter cell."""
         logger.info("Answering to Jupyter: %s", text)
         self.send_response(
-            self.iopub_socket, "stream", {"name": stream, "text": text + "\n"}
+            self.iopub_socket, "stream", {"name": stream, "text": text}
         )
 
     def answer_expression_value(self, expression_value: str) -> None:
