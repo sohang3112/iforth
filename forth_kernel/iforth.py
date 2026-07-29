@@ -67,7 +67,7 @@ class GForth:
     .s <2> 3 0  ok
     """
     executable_path = gforth_path()
-    output_timeout = 2     # seconds
+    output_timeout = 0.3   # seconds, only for startup and interrupt
     poll_interval = 0.3    # how often to glance at stderr while waiting
     error_timeout = 0.05   # how long to wait for error text once suspected
     chunk_size = 64        # max output characters to print in one go
