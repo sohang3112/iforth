@@ -36,6 +36,10 @@ $ python -m forth_kernel.self_install --user      # Register IForth Jupyter kern
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) .
 
+## Notes for Repo Maintainers
+
+See [MAINTAINERS.md](MAINTAINERS.md) .
+
 ## Documentation
 
 See detailed documentation at [this repo's wiki](https://github.com/sohang3112/iforth/wiki). **TODO:** The wiki is empty, update docs there!
