@@ -111,8 +111,13 @@ class GForth:
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         self.terminate()
 
-    async def _exec_code_line(self, cmd: str, print_func) -> bool:
-        """Execute a single line of Forth code. Returns False if GForth reported an error."""
+    async def _exec_code_line(self, cmd: str, print_func: Callable[[str, Literal['stdout', 'stderr']], None]) -> bool:
+        """Execute a single line of Forth code.
+
+        @param cmd: Forth code to execute.
+        @param print_func: Function to print output. It receives an argument for whether stdout or stderr is to be used.
+        @return: Whether the execution was successful (i.e. no error occurred).
+        """
         self._process.stdin.write(cmd.encode() + b'\n')
         await self._process.stdin.drain()
         await skip_output_text(self._process.stdout, cmd)   # GForth echoes the command
@@ -184,7 +189,7 @@ class GForth:
                 print_func(text, 'stderr')
 
         successful = await self._exec_code_line('.s', print_stack)
-        return stack_output + ' ok' if successful and stack_output else None
+        return stack_output.lstrip() + ' ok' if successful and stack_output else None
         
     async def interrupt(self) -> str:
         """Sends Ctrl+C to GForth process, and returns its error message."""

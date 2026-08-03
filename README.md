@@ -49,6 +49,17 @@ See detailed documentation at [this repo's wiki](https://github.com/sohang3112/i
 - Run `jupyter notebook` (or `jupyter lab`, whichever you prefer).
 - In a new or existing notebook, use the kernel selector (located at the top right of the notebook) to select `IForth`.
 
+## Known Limitations
+
+- **Output containing ` ok` or ` compiled`**: the kernel detects when GForth
+  has finished a line by watching for its ` ok` / ` compiled` prompt. Forth
+  code whose own output ends with those words — e.g. `."  ok"` — can be
+  mistaken for the prompt, truncating the rest of that line's output.
+- **Words that read from stdin** (`KEY`, `ACCEPT`, `REFILL`) are not
+  supported: the kernel provides no way to send input to a running word.
+- **`QUIT` isn't handled**: Since `QUIT` does no output we can't detect
+  when a line is complete so the cell just hangs in the running state.
+  
 ## Misc Notes
 
 ### [Jupyter Kernel Architecture](https://www.datahaskell.org/blog/2025/11/25/a-tale-of-two-kernels.html#the-jupyter-kernel-architecture)
