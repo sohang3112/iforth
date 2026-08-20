@@ -116,14 +116,14 @@
 
 (slide
  #:title "Subclass Jupyter Kernel"
- (scale (bitmap "images/IForth_code.png") 0.6))  ; used 0.6 scale to make the image fit inside slide without pushing out the slide number at the bottom
+ (scale (bitmap "images/IForth_code.png") 0.5))  ; used less scale to make screenshot image fit inside slide without pushing out the slide number
 
 (slide
  #:title "Register the custom kernel with Jupyter"
  (scale (bitmap "images/install_kernelspec.png") 0.7))
 
 (slide
- #:title "Unit Test using module jupyter_kernel_test"
+ #:title "Automated Tests using module jupyter_kernel_test"
  (scale (bitmap "images/kernel_unit_test.png") 0.7))
 
 (slide

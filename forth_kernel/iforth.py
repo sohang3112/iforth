@@ -202,7 +202,7 @@ class IForth(Kernel):
     implementation = "forth"
     implementation_version = __version__
 
-    gforth = GForth()
+    gforth = GForth()    # spawns subprocess: long-lived gforth interpreter
     
     def answer_text(self, text: str, stream: Literal["stdout", "stderr"]) -> None:
         """Send text response to Jupyter cell."""
@@ -221,7 +221,7 @@ class IForth(Kernel):
         })
 
     @override
-    async def do_execute(
+    async def do_execute(        # do_execute() can also be synchronous
         self,
         code: str,
         silent: bool,
@@ -239,7 +239,7 @@ class IForth(Kernel):
             self.answer_expression_value(stack_output)
         return {
             'status': 'ok', 
-            'execution_count': self.execution_count, 
+            'execution_count': self.execution_count,         # Jupyter's tracked cell count
             'payload': [], 
             'user_expressions': {}
         }
