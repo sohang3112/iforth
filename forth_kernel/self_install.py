@@ -19,7 +19,8 @@ args = parser.parse_args()
 # dynamically generate kernel.json so that correct Python path is used
 kernel_spec = {
     "argv": [
-        # path to python (of the venv where forth_kernel is installed) - allows it to run even if Jupyter is installed in a different venv
+        # path to python (of the venv where forth_kernel is installed)
+        # allows it to run even if Jupyter is installed in a different venv
         sys.executable,
         "-m",
         "forth_kernel",
@@ -42,6 +43,10 @@ try:
     install_kernel_spec(str(script_dir), 'forth', replace=True, user=args.user)
     logger.info('Successfully installed jupyter kernel for Forth.')
 except PermissionError as e:
-    logger.error('Failed to install jupyter kernel for Forth: %s\nTry installing as user instead of root: python -m forth_kernel.self_install --user', e)
+    logger.error(
+        'Failed to install jupyter kernel for Forth: %s\n' + 
+        'Try installing as user instead of root: python -m forth_kernel.self_install --user', 
+        e
+    )
 except Exception as e:
     logger.error('Failed to install jupyter kernel for Forth: %s', e)

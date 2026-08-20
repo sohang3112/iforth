@@ -32,6 +32,12 @@ $ pip install forth_kernel
 $ python -m forth_kernel.self_install --user      # Register IForth Jupyter kernel
 ```
 
+### Running
+
+Run Jupyter Notebook / Lab as usual, just select IForth Jupyter kernel for the Jupyter Notebook.
+
+Debugging Logs are written at ~/.jupyter/forth_kernel.log .
+
 ## Contribution & Development Install
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) .
