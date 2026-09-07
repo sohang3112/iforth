@@ -115,6 +115,58 @@
        (t "Source: https://www.datahaskell.org/blog/2025/11/25/a-tale-of-two-kernels.html#the-jupyter-kernel-architecture")))))
 
 (slide
+ #:title "Python is the glue"
+ (with-size 22
+   (vl-append 14
+     (t "Jupyter speaks a protocol; Python connects it to Forth.")
+     (blank 0 6)
+     (bullets
+      "Jupyter's Kernel base class provides the integration point"
+      "Python starts and owns a long-lived GForth subprocess"
+      "stdin / stdout / stderr connect Python to the interpreter"
+      "asyncio lets the kernel stream output without blocking Jupyter"))))
+
+(slide
+ #:title "From a Python cell to GForth"
+ (with-size 19
+   (vl-append 12
+     (para "A cell execution becomes a small Python pipeline:")
+     (hc-append 18
+                (t "Jupyter")
+                (t "→")
+                (tt "do_execute(code)")
+                (t "→")
+                (tt "GForth stdin")
+                (t "→")
+                (tt "GForth stdout/stderr")
+                (t "→")
+                (t "Jupyter"))
+     (blank 0 10)
+     (bullets
+      "do_execute() receives the cell's source code"
+      "GForth is kept alive between cells, so state persists"
+      "Python reads output until the GForth prompt"
+      "stdout/stderr are sent back as Jupyter stream messages"))))
+
+(slide
+ #:title "The Python side: two kinds of output"
+ (with-size 20
+   (vl-append 12
+     (hc-append 30
+                (vl-append 8
+                  (t "Printed output")
+                  (tt "answer_text(...)")
+                  (t "stream message"))
+                (vl-append 8
+                  (t "Expression / stack value")
+                  (tt "answer_expression_value(...)")
+                  (t "execute_result message")))
+     (blank 0 10)
+     (para "This separation is what makes a non-Python interpreter feel native inside a notebook.")
+     (blank 0 6)
+     (t "In IForth, Python implements the Jupyter-facing layer; GForth remains the Forth runtime."))))
+
+(slide
  #:title "Subclass Jupyter Kernel"
  (scale (bitmap "images/IForth_code.png") 0.5))  ; used less scale to make screenshot image fit inside slide without pushing out the slide number
 
