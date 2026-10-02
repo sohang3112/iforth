@@ -15,5 +15,5 @@ External PR contributors' branches are in their own forks, not in this repo, so 
 - Test it's working correctly.
 - Increment the version number in _pyproject.toml_.
 - Build source & wheel packages: `uv build`.
-- Upload package to PyPi : `uv publish --token PYPI_TOKEN`.
-- Make a new release on Github.
+- Upload package to PyPi (using saved `PYPI_TOKEN` environment variable): `uv publish --token $PYPI_TOKEN`.
+- Make a new release on Github, attaching all files (`*.whl` wheel file and `*.tar.gz` folder archive) to the release.

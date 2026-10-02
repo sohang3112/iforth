@@ -1,7 +1,7 @@
 [project]
 readme = { file = "README.md", content-type = "text/markdown" }
 name = "forth_kernel"
-version = "0.4.1"
+version = "0.4.2"
 description = "A Jupyter kernel for the Forth programming language. Allows running Forth in interactive Jupyter Notebook."
 authors = [{ name = "Sohang Chopra", email = "sohangchopra@gmail.com" }]
 urls = { "Source" = "https://github.com/sohang3112/iforth" }
