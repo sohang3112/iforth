@@ -8,6 +8,8 @@ Forth kernel for Jupyter notebook / lab. This is a fork of [github.com/jdfreder/
 
 **Note:** Check the [changelog](CHANGELOG.md) to see the latest changes in development as well as in releases.
 
+Do check out this video where [Andrew McKewan](https://github.com/amckewan) used IForth jupyter kernel as part of his presentation at Silicon Valley Forth Group (SVFIG) in August 2026: [Finances in Forth](https://youtu.be/BcRaNPmutd4?si=T5gSC9eCz_WTTx9e)
+
 ## Installation
 
 **Pre-Requisite**: Install `jupyter` & `gforth`, ensuring they are available in the environment PATH.
@@ -49,6 +51,8 @@ See [MAINTAINERS.md](MAINTAINERS.md) .
 ## Documentation
 
 See detailed documentation at [this repo's wiki](https://github.com/sohang3112/iforth/wiki). **TODO:** The wiki is empty, update docs there!
+
+Also see [this proposed talk presentation on IForth](presentation/) for implementation details of this Jupyter kernel.
 
 ## Usage
 

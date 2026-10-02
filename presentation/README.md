@@ -1,3 +1,7 @@
+**My Conference Proposal Talk**: [Building a Jupyter Kernel for a Non-Python Language](https://github.com/pydelhi/talks/issues/431) -- unfortunately didn't get accepted for Sept 2026 meetup :(
+
+### Presentation Writing Implementation Details
+
 Using Racket's `slideshow` library to generate presentation.
 
 * Full-screen immediate presentation: `slideshow --keep-titlebar presentation.rkt`. Navigate slides using left, right arrow keys. Quit using Esc key.
