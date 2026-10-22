@@ -5,10 +5,19 @@ version = "0.4.2"
 description = "A Jupyter kernel for the Forth programming language. Allows running Forth in interactive Jupyter Notebook."
 authors = [{ name = "Sohang Chopra", email = "sohangchopra@gmail.com" }]
 urls = { "Source" = "https://github.com/sohang3112/iforth" }
+keywords = ["jupyter", "forth"]
 classifiers = [
     "Framework :: IPython",
     "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Langague :: Python :: 3.15",
+    "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Shells",
 ]
 requires-python = ">=3.11"
@@ -35,4 +44,5 @@ dev = [
     "pytest>=8.3.5",
 ]
 test = ["jupyter-kernel-test>=0.7.0"]
+
 
